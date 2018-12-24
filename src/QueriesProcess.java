@@ -31,7 +31,7 @@ public class QueriesProcess {
 			case 2:
 				Algorithm2 algo2 = new Algorithm2 ();
       			System.out.println(algo2.run(q, nk));
-				System.out.println(algo2);
+				//System.out.println(algo2);
 
 //				try{
 //					System.out.println(algo2.run(q, nk));

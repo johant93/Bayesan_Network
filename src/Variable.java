@@ -40,8 +40,11 @@ public class Variable {
 	public Variable(Variable v){
 		Name = v.getName();
 		values = v.getValues();
+		parents = v.getParents();
 		ancestors = new ArrayList<>();
+		ancestors.addAll(v.getAncestors());
 		relevantValues = new ArrayList<>();
+		CPT = new ArrayList<>();
 		CPT.addAll(v.getCPT());
 	}
 
@@ -201,6 +204,10 @@ public class Variable {
 
 	}
 
+	/**
+	 * update all the hidden values of this variable cpt
+	 * e.g: B,=true,0.001 -> B,=true,0.001  B,=false,0,999
+	 */
 	public void updateHiddenValue(){
 		ArrayList<CPTline> newsCptLine = new ArrayList<>();
 		Var hiddenVar = new Var(Name);
@@ -248,6 +255,11 @@ public class Variable {
 		return false;
 	}
 	
+	/**
+	 * join factor to the factor of this variable
+	 * @param factor
+	 * @return ArrayList of CPT line 
+	 */
 	public ArrayList<CPTline> join(ArrayList<CPTline> factor){
 		
 		ArrayList<CPTline> newfactor = new ArrayList<>();
@@ -264,20 +276,22 @@ public class Variable {
 	 */
 	public ArrayList<Factor> getAllLinkedFactors(ArrayList<Variable> variablesList){
 		ArrayList<Factor> allFactor = new ArrayList<>();
-		Factor fac = new Factor();
 		int len = variablesList.size();
 		for (int i = 0; i < len; i++) {
 			if(this.isAnAncestorOf(variablesList.get(i))){
-				fac.setVariables(variablesList.get(i).getCPT());
+				Factor fac = new Factor(variablesList.get(i).getCPT());
 				allFactor.add(fac);
 			variablesList.remove(i);
 			len--;
+			i = 0;
 			}
-			else if(this.getName().equals(variablesList.get(i).getName()))
+			else if(this.getName().equals(variablesList.get(i).getName())){
 				variablesList.remove(i);
 			len--;
+			i = 0;
+			}
 		}
-		fac.setVariables(this.getCPT());
+		Factor fac = new Factor(this.getCPT());
 		allFactor.add(fac);
 		return allFactor;
 	}

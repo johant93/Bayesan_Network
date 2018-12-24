@@ -8,6 +8,10 @@ public class Factor {
 		this.variables = new ArrayList<>();
 	}
 
+	public Factor(ArrayList<CPTline> variables) {
+		this.variables = new ArrayList<>();
+		this.variables.addAll(variables);
+	}
 	public ArrayList<CPTline> getVariables() {
 		return variables;
 	}
@@ -48,7 +52,7 @@ public class Factor {
 
 @Override
 public String toString() {
-	return "Factor [variables=" + variables + "]";
+	return "Factor [variables=" + variables.toString() + "]";
 }
 
 

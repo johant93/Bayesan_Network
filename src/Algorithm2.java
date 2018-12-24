@@ -1,5 +1,4 @@
-import java.awt.List;
-import java.lang.reflect.Array;
+
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -12,30 +11,45 @@ public class Algorithm2 {
 	private Factor currentFactor;
 	private Variable queryVariable;
 
+	/**
+	 * constructor
+	 */
 	public Algorithm2() {
 		relevantVariables = new ArrayList<>();
 		irrelevantVariables = new ArrayList<>();
 		currentFactor = new Factor();
-
 	}
 
-	public void setCurrentFactor(Factor newFactor){
-		currentFactor.setVariables(newFactor.getVariables());
-	}
-
+	/**
+	 * run the algorithm
+	 * @param query
+	 * @param network
+	 * @return the answer
+	 */
 	public Answer run(Query qr,Network nk){
 
 		Answer ans = new Answer();
+		initialization(qr, nk);
+		ans.setResult(getProbability());
+		return ans;
+	}
+
+	
+	/**
+	 * initialize the Algorithm before running.
+	 * @param qr
+	 * @param nk
+	 */
+	private void initialization(Query qr,Network nk){
 		ArrayList<Var>qVars = new ArrayList<>();
 		qVars.add(qr.getVar());
 		qVars.addAll(qr.getConditionVars());
 		setQueryVariable(qr.getVar());
 		setRelevantVariables(nk, qVars);
-		setIrrelevantVariables(nk, qVars);
-		ans.setResult(getProbability());
-		return ans;
+		updateHiddenValues(relevantVariables,qr.getConditionVars());
+		setIrrelevantVariables(qVars);
+		currentFactor.clear();
 	}
-	
 
 	/**
 	 * this method operate join and Elimination on each irrelevant variable
@@ -43,14 +57,17 @@ public class Algorithm2 {
 	 */
 	public double getProbability(){
 		ArrayList<Factor> variableFactors = new ArrayList<>();
-		Factor resultFac = new Factor(); // opt
 		int len = irrelevantVariables.size();
 		for (int i = 0; i < len; i++) {
 			variableFactors.addAll(irrelevantVariables.get(i).getAllLinkedFactors(relevantVariables));
-			resultFac.clear(); // opt
-			resultFac.addAll(joinAndEliminate(variableFactors,irrelevantVariables.get(i)));
+			System.out.println("Current factor:"+this.currentFactor);
+
+			for (Factor factor : variableFactors) {
+				System.out.println("Factors to join:"+factor);
+			}
+			System.out.println();
+			joinAndEliminate(variableFactors,irrelevantVariables.get(i));
 			variableFactors.clear();
-			variableFactors.add(resultFac);// opt
 		}
 		for (int i = 0; i < relevantVariables.size(); i++) {
 			variableFactors.add(relevantVariables.get(i).getFactor());
@@ -65,11 +82,12 @@ public class Algorithm2 {
 	 */
 	private double normalization(){
 		double p = 0;
-		
-		
+ // return tools.normalizeA(A, B); 
 		return p;
 	}
 	/**
+	 * join all factor of variable v,
+	 *  then eliminate v following the elimination algorithm
 	 * @param variableFactors
 	 * @param v
 	 * @return an ArrayList of CPTline as factor result of join and Eliminate factors of variable
@@ -79,8 +97,9 @@ public class Algorithm2 {
 		Eliminate(v); 												// eliminate
 		return currentFactor;
 	}
-	
+
 	/**
+	 * join all the variable's factors
 	 * @param variableFactors
 	 * @return an ArrayList of CPTline as factor result of joining factors of variable
 	 */
@@ -97,12 +116,11 @@ public class Algorithm2 {
 	}
 
 	/**
-	 * this method join two factors
+	 * join current factor to factor
 	 * @param Next factor to join to currentFactor
 	 * @return an ArrayList of CPTline as the new factor builded by joining
 	 */
 	private Factor currentFacJoin(Factor factor){
-
 		Factor newfactor = new Factor();
 		for (CPTline cptline : factor.getVariables()) {
 			ArrayList<CPTline> matchedCptLines = cptline.match(this.currentFactor.getVariables());
@@ -117,38 +135,47 @@ public class Algorithm2 {
 	private void Eliminate(Variable v){
 		Factor newFactor = new Factor();
 		this.currentFactor.deleteVariable(v.getName());
-		int len = this.currentFactor.getVariables().size();
+		int len = this.currentFactor.getVariables().size(),
+				ValideNumOfMatch = v.getValues().length-1;
 		double prb = 0;
 		int count = 0;
-		CPTline cptline = new CPTline();
-		for (int i = 0; i < len ; i++) {
+		for (int i = 0; i < len-1 ; i++) {
+			CPTline cptline = new CPTline();
 			cptline.setCptVars(this.currentFactor.getVariables().get(i).getCptVars());
 			count = 0;
 			prb = this.currentFactor.getVariables().get(i).getProb();
-			for (int j = i+1; j < len-1; j++) {
+			for (int j = i+1; j < len; j++) {
 				if(this.currentFactor.getVariables().get(j).matchWith(cptline)){
 					prb+= this.currentFactor.getVariables().get(j).getProb();
 					count++;
 				}
 			}
-			if(count==v.getValues().length){
+			if(count==ValideNumOfMatch){
 				cptline.setProb(prb);
-                newFactor.add(cptline);
+				newFactor.add(cptline);
 			}
 		}
 		setCurrentFactor(newFactor);
 	}
-	
-	
+
+	/**
+	 * set current factor to newFactor
+	 * @param newFactor
+	 */
+	public void setCurrentFactor(Factor newFactor){
+		currentFactor.setVariables(newFactor.getVariables());
+	}
+
 	/**
 	 * this method set the Variables that relevant to the query.
 	 * @param nk
 	 * @param qVars
 	 */
 	public void setRelevantVariables(Network nk,ArrayList<Var> qVars){
+		ArrayList<Variable> networkVariables = nk.getRelevantVariablesToQuery(qVars);
 		relevantVariables.clear();
-		relevantVariables.addAll(nk.getRelevantVariablesToQuery(qVars));
-		//updateHiddenValues(relevantVariables);
+		relevantVariables.ensureCapacity(networkVariables.size()+1);
+		Collections.copy(relevantVariables,networkVariables);
 	}
 	/**
 	 * this method set the Variable that query ask for.
@@ -163,10 +190,9 @@ public class Algorithm2 {
 
 	/**
 	 * this method set the Variables that irrelevant to the query.
-	 * @param nk
 	 * @param qVars
 	 */
-	public void setIrrelevantVariables(Network nk,ArrayList<Var> qVars){
+	public void setIrrelevantVariables(ArrayList<Var> qVars){
 		irrelevantVariables.clear();
 		irrelevantVariables.addAll(relevantVariables);
 		int len = irrelevantVariables.size();
@@ -182,11 +208,23 @@ public class Algorithm2 {
 	}
 
 	/**
-	 * for each variable calcul and insert the hidden value in the CPT.
+	 * for each variable in variables,compute and insert the hidden values in the CPT
+	 * according to the Evidence query.
+	 * @param variables
+	 * @param conditionVars 
 	 */
-	public void updateHiddenValues(ArrayList<Variable> variables){
-		for (Variable variable : variables) {
-			variable.updateHiddenValue();
+	public void updateHiddenValues(ArrayList<Variable> variables, ArrayList<Var> conditionVars){
+		
+		boolean isAnEvidence[]= new boolean[variables.size()];
+		for (int i = 0; i < isAnEvidence.length; i++) {
+			for (Var v: conditionVars) {
+				if(v.isEqual(variables.get(i)))
+					isAnEvidence[i]=true;
+			}
+		}
+		for (int i = 0; i < isAnEvidence.length; i++) {
+			if(!isAnEvidence[i])
+				variables.get(i).updateHiddenValue();
 		}
 	}
 

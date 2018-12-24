@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -100,10 +101,24 @@ public class CPTline {
 		return false;
 	}
 	
+	/**
+	 * concat this CPT line and Other CPT line, remove duplicate Var 
+	 * @param other
+	 * @return a new CPT line after concation of this CPT line and other CPT line.
+	 */
 	private CPTline concat(CPTline other){
 		CPTline newCptLine = new CPTline();
 		Set <Var> newVars = Stream.concat(this.getCptVars().stream(),other.getCptVars().stream())
 				.distinct().collect(Collectors.toSet());
+		ArrayList<String> VarsName = new ArrayList<>();
+		Set <Var> trash = new HashSet<>();
+		for (Var var : newVars) {
+			if(VarsName.contains(var.getName()))
+				trash.add(var);
+			else
+				VarsName.add(var.getName());
+		}
+		newVars.removeAll(trash);
 		double newPrb = this.getProb()*other.getProb();
 		newCptLine.setCptVars(newVars);
 		newCptLine.setProb(newPrb);
