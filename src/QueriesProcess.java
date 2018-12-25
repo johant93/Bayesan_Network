@@ -1,20 +1,32 @@
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
 public class QueriesProcess {
 
 
+	WriteToOutput Wout;
 	/**
 	 * execute the Queries of the file and write results in a new file.
 	 */
 	public void Execute(File file){
 
+		try {
+		  Wout = new WriteToOutput("output.txt");
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		Network nk = new Network(file);
 		ArrayList<Query> queries = readQueries(file);
 		System.out.println(queries);
 		run(nk, queries);
+		Wout.close();
 		//ArrayList<String> results = algo.run(nk,queries);
 		// write results..
 
@@ -25,12 +37,12 @@ public class QueriesProcess {
 			case 1: 
 				Algorithm1 algo1 = new Algorithm1 ();
 				System.out.println(q);
-				System.out.println(algo1.run(q, nk));
+				Wout.writeAns(algo1.run(q, nk));
 				System.out.println("##############################################################");
 				break;
 			case 2:
 				Algorithm2 algo2 = new Algorithm2 ();
-      			System.out.println(algo2.run(q, nk));
+				Wout.writeAns(algo2.run(q, nk));
 				//System.out.println(algo2);
 
 //				try{

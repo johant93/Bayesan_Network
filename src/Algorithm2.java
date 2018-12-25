@@ -13,8 +13,8 @@ public class Algorithm2 {
 	public ArrayList<Variable> relevantVariables;
 	private Factor currentFactor;
 	private Var queryVariable;
-	public int additionSum;
-	public int multiplicationSum;
+	public static int additionSum;
+	public static int multiplicationSum;
 
 	/**
 	 * constructor
@@ -68,12 +68,12 @@ public class Algorithm2 {
 		int len = irrelevantVariables.size();
 		for (int i = 0; i < len; i++) {
 			variableFactors.addAll(irrelevantVariables.get(i).getAllLinkedFactors(relevantVariables));
-			System.out.println("Current factor:"+this.currentFactor);
+		//	System.out.println("Current factor:"+this.currentFactor);
 
 			for (Factor factor : variableFactors) {
 				System.out.println("Factors to join:"+factor);
 			}
-			System.out.println();
+		//	System.out.println();
 			joinAndEliminate(variableFactors,irrelevantVariables.get(i));
 			variableFactors.clear();
 		}
@@ -81,7 +81,7 @@ public class Algorithm2 {
 			variableFactors.add(relevantVariables.get(i).getFactor());
 		}
 		join(variableFactors);
-		System.out.println("last factor:"+this.currentFactor);
+	//	System.out.println("last factor:"+this.currentFactor);
 		return normalization();
 	}
 
@@ -152,7 +152,7 @@ public class Algorithm2 {
 		int len = this.currentFactor.getVariables().size(),
 				ValideNumOfMatch = v.getValues().length-1;
 		double prb = 0;
-		int count = 0;
+		int count = 0, additCounter = 0;
 		for (int i = 0; i < len-1 ; i++) {
 			CPTline cptline = new CPTline();
 			cptline.setCptVars(this.currentFactor.getVariables().get(i).getCptVars());
@@ -162,11 +162,14 @@ public class Algorithm2 {
 				if(this.currentFactor.getVariables().get(j).matchWith(cptline)){
 					prb+= this.currentFactor.getVariables().get(j).getProb();
 					count++;
+					additCounter++;
+					Algorithm2.additionSum++;
 				}
 			}
 			if(count==ValideNumOfMatch){
 				cptline.setProb(prb);
 				newFactor.add(cptline);
+			//	Algorithm2.additionSum+=additCounter;
 			}
 		}
 		setCurrentFactor(newFactor);

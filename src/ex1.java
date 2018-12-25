@@ -7,8 +7,6 @@ public class ex1 {
        File file = new File("input.txt") ;
 		QueriesProcess QP = new QueriesProcess();
 		QP.Execute(file);
-		//N.buildNetwork(file);
-		//System.out.println(N.toString());
 		
 	}
 
