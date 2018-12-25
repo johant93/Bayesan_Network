@@ -52,7 +52,7 @@ public class Factor {
 
 @Override
 public String toString() {
-	return "Factor [variables=" + variables.toString() + "]";
+	return "Factor CPT=" + variables.toString() + "]";
 }
 
 

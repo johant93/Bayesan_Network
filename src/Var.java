@@ -3,16 +3,16 @@
  * @author joh
  *
  */
-public class Var{
+public class Var implements Cloneable{
 
 	private String Name ;
 	private String Value;
 
-	
+
 	public Var() {
-		
+
 	}
-	
+
 	public Var(String name) {
 		Name = name;
 	}
@@ -20,8 +20,12 @@ public class Var{
 		this.Value = Value;
 		Name = name;
 	}
-	
 
+
+	public Var(Var var) {
+		this.Name = var.Name;
+		this.Value = var.Value;
+	}
 	public String getValue() {
 		return Value;
 	}
@@ -34,24 +38,42 @@ public class Var{
 	public void setName(String name) {
 		Name = name;
 	}
-	
+
 	public boolean isEqual(Var v){
 		if(Name.equals(v.getName()) && Value.equals(v.getValue()))
 			return true; 
-		 return false;
+		return false;
 	}
 	public boolean isEqual(Variable v){
 		if(Name.equals(v.getName()))
 			return true; 
-		 return false;
+		return false;
+	}
+	////////////////clone method
+	@Override
+	protected Object clone() throws CloneNotSupportedException {
+		Var clone = null;
+		try
+		{
+			clone = (Var) super.clone();
+			clone.setName(this.Name);
+			clone.setValue(this.Value);
+		}
+		catch (CloneNotSupportedException e)
+		{
+			throw new RuntimeException(e);
+		}
+		return clone;
 	}
 
-	
+	/////////////////
+
+
 	public String toString() {
 		return Name + "=" + Value;
 	}
-	
-	
 
-	
+
+
+
 }

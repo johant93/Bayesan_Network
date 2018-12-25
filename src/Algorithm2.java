@@ -1,21 +1,26 @@
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
 
 
 public class Algorithm2 {
 
 	Tools tools = new Tools();
 	private ArrayList<Variable> irrelevantVariables;
-	private ArrayList<Variable> relevantVariables;
+	public ArrayList<Variable> relevantVariables;
 	private Factor currentFactor;
-	private Variable queryVariable;
+	private Var queryVariable;
+	public int additionSum;
+	public int multiplicationSum;
 
 	/**
 	 * constructor
 	 */
 	public Algorithm2() {
-		relevantVariables = new ArrayList<>();
+		relevantVariables = new ArrayList<>(200);
 		irrelevantVariables = new ArrayList<>();
 		currentFactor = new Factor();
 	}
@@ -31,16 +36,19 @@ public class Algorithm2 {
 		Answer ans = new Answer();
 		initialization(qr, nk);
 		ans.setResult(getProbability());
+		ans.setAdditionOperations(additionSum);
+		ans.setMultipOperations(multiplicationSum);
 		return ans;
 	}
 
-	
+
 	/**
 	 * initialize the Algorithm before running.
 	 * @param qr
 	 * @param nk
 	 */
 	private void initialization(Query qr,Network nk){
+		additionSum = multiplicationSum = 0;
 		ArrayList<Var>qVars = new ArrayList<>();
 		qVars.add(qr.getVar());
 		qVars.addAll(qr.getConditionVars());
@@ -81,9 +89,15 @@ public class Algorithm2 {
 	 * @return the probability resulting of the algorithm after normalization
 	 */
 	private double normalization(){
-		double p = 0;
- // return tools.normalizeA(A, B); 
-		return p;
+		double sum = 0, queryprob = 0 ;
+		for (CPTline cptline : currentFactor.getVariables()) {
+			if(cptline.includesVar(queryVariable)) queryprob = cptline.getProb();
+		 sum+=cptline.getProb();
+		}
+		BigDecimal bd = new BigDecimal(queryprob/sum);
+		bd= bd.setScale(5,BigDecimal.ROUND_UP);
+		double result = bd.doubleValue();
+		return result; 
 	}
 	/**
 	 * join all factor of variable v,
@@ -165,6 +179,9 @@ public class Algorithm2 {
 	public void setCurrentFactor(Factor newFactor){
 		currentFactor.setVariables(newFactor.getVariables());
 	}
+	public ArrayList<Variable> getrelevant(){
+		return this.relevantVariables;
+	}
 
 	/**
 	 * this method set the Variables that relevant to the query.
@@ -172,21 +189,25 @@ public class Algorithm2 {
 	 * @param qVars
 	 */
 	public void setRelevantVariables(Network nk,ArrayList<Var> qVars){
-		ArrayList<Variable> networkVariables = nk.getRelevantVariablesToQuery(qVars);
 		relevantVariables.clear();
-		relevantVariables.ensureCapacity(networkVariables.size()+1);
-		Collections.copy(relevantVariables,networkVariables);
+		relevantVariables.addAll(nk.getRelevantVariablesToQuery(qVars));
+		//ArrayList<Variable> networkVariables = new ArrayList<Variable>(); 
+		//Collections.copy(networkVariables,nk.getRelevantVariablesToQuery(qVars));
+		// deep copy 
+		//		Iterator<Variable> iterator = nk.getRelevantVariablesToQuery(qVars).iterator();
+		//        while(iterator.hasNext()){
+		//            networkVariables.add((Variable) iterator.next().clone());
+		//        }
+
 	}
 	/**
 	 * this method set the Variable that query ask for.
 	 * @param v
 	 */
 	public void setQueryVariable(Var v){
-		for(Variable variable: relevantVariables){
-			if(v.isEqual(variable))
-				queryVariable = new Variable(variable);
-		}
+		this.queryVariable = new Var(v);
 	}
+
 
 	/**
 	 * this method set the Variables that irrelevant to the query.
@@ -214,7 +235,7 @@ public class Algorithm2 {
 	 * @param conditionVars 
 	 */
 	public void updateHiddenValues(ArrayList<Variable> variables, ArrayList<Var> conditionVars){
-		
+
 		boolean isAnEvidence[]= new boolean[variables.size()];
 		for (int i = 0; i < isAnEvidence.length; i++) {
 			for (Var v: conditionVars) {
@@ -225,6 +246,8 @@ public class Algorithm2 {
 		for (int i = 0; i < isAnEvidence.length; i++) {
 			if(!isAnEvidence[i])
 				variables.get(i).updateHiddenValue();
+			else 
+				variables.get(i).KeepNeedValues(conditionVars);
 		}
 	}
 

@@ -2,6 +2,7 @@ import java.awt.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.stream.Stream;
 /**
@@ -9,7 +10,7 @@ import java.util.stream.Stream;
  * @author joh
  *
  */
-public class Variable {
+public class Variable implements Cloneable{
 
 	Tools tools = new Tools();
 	private String Name ;
@@ -42,10 +43,15 @@ public class Variable {
 		values = v.getValues();
 		parents = v.getParents();
 		ancestors = new ArrayList<>();
-		ancestors.addAll(v.getAncestors());
-		relevantValues = new ArrayList<>();
+		for (int i = 0; i < v.getAncestors().size(); i++) {
+			Variable ancestor = new Variable(v.getAncestors().get(i));
+			this.ancestors.add(ancestor);
+		}
 		CPT = new ArrayList<>();
-		CPT.addAll(v.getCPT());
+		for (int i = 0; i < v.getCPT().size(); i++) {
+			CPTline cptline = new CPTline(v.getCPT().get(i));
+			this.CPT.add(cptline);
+		}
 	}
 
 	public void addCPTline (CPTline cptLine){
@@ -77,6 +83,39 @@ public class Variable {
 	public ArrayList<Variable> getAncestors() {
 		return ancestors;
 	}
+
+	public void setAncestors(ArrayList<Variable> ancestors) {
+		this.ancestors = ancestors;
+	}
+	public void setCPT(ArrayList<CPTline> cPT) throws CloneNotSupportedException {
+		CPT.clear();
+		Iterator<CPTline> iterator = cPT.iterator();
+		while(iterator.hasNext()){
+			CPT.add((CPTline) iterator.next().clone());
+		}
+	}
+	public static void setComparatorAlphabetOrder(Comparator<Variable> comparatorAlphabetOrder) {
+		ComparatorAlphabetOrder = comparatorAlphabetOrder;
+	}
+	@Override
+	protected Object clone() throws CloneNotSupportedException {
+		Variable clone = null;
+		try
+		{
+			clone = (Variable) super.clone();
+			clone.setName(this.Name);
+			clone.setParents(this.parents);
+			clone.setValues(this.values);
+			clone.setCPT(this.getCPT());
+		}
+		catch (CloneNotSupportedException e)
+		{
+			throw new RuntimeException(e);
+		}
+		return clone;
+	}
+
+	//////////////
 
 	public void addAncestor(Variable v){
 		ancestors.add(v);
@@ -136,7 +175,6 @@ public class Variable {
 				}
 			}
 		}
-
 		return prob;
 	}
 	/**
@@ -154,7 +192,6 @@ public class Variable {
 				for(Var v:queryVars){
 					if(v.isEqual(CPT.get(i).getCptVars().get(j)))
 						cpt[i][j]=true;
-
 				}
 			}
 		}
@@ -197,18 +234,18 @@ public class Variable {
 				relevantProbs.add(prob);
 			}
 		}
-
-
 		if(trueCol==false)
 			complAllRelevantProbs();
-
 	}
 
 	/**
 	 * update all the hidden values of this variable cpt
+	 * if the variable is an evidence fin
 	 * e.g: B,=true,0.001 -> B,=true,0.001  B,=false,0,999
+	 * @param isAnEvidence
 	 */
 	public void updateHiddenValue(){
+		
 		ArrayList<CPTline> newsCptLine = new ArrayList<>();
 		Var hiddenVar = new Var(Name);
 		boolean find = false ;
@@ -217,6 +254,7 @@ public class Variable {
 			if(!includesVarInCPT(hiddenVar))
 				find = true;
 		}
+		if(find){
 		double newprob = 0;
 		int iterator = 0, numofpresentValues = values.length - 1; 
 		ArrayList<Var> cptVars = new ArrayList<>();
@@ -226,27 +264,82 @@ public class Variable {
 				cptVars.addAll(cptline.getCptVars());	
 			}
 			if(iterator<numofpresentValues){
-					newprob+= cptline.getProb();
-			        iterator++;
+				newprob+= cptline.getProb();
+				iterator++;
 			}
-		    if(iterator == numofpresentValues){
+			if(iterator == numofpresentValues){
 				CPTline newCptline = new CPTline(cptVars, 1-newprob);
 				newCptline.setFirstVarValue(hiddenVar.getValue());
 				newsCptLine.add(newCptline);
 				iterator = 0;
 				newprob = 0 ;
 			}
-			
 		}
 		CPT.addAll(newsCptLine);
+		}
+	}
+	
+	/**
+	 * this method remove irrelevant values (if exist) according to the query
+	 * and keep the need value(s).
+	 * @param conditionVars
+	 */
+	public void KeepNeedValues(ArrayList<Var>conditionVars){
+		Var needVar = new Var(Name);
+		for (Var var : conditionVars) {
+			if(var.getName().equals(needVar.getName()))
+				needVar.setValue(var.getValue());
+		}
+		boolean findNeedValues = false;
+		for (CPTline cptline : this.getCPT()) {
+			if(cptline.includesVar(needVar))
+			findNeedValues = true;
+		}
+		if(findNeedValues){
+			removeOneNoNeedValue(needVar);
+		}
+		else{
+			updateHiddenValue();
+			removeOneNoNeedValue(needVar);
+		}
+	}
+	
+	/**
+	 * remove one no need value in the CPT according to the need Var.
+	 * before using this method, check that the CPT include all the Variable values possible.
+	 * @param needVar
+	 */
+	private void removeOneNoNeedValue(Var needVar){
+		Var varToRemove = new Var(Name);
+		boolean find = false;
+		//find the var to remove
+		for (CPTline cpTline : CPT) {
+			for (Var var : cpTline.getCptVars()) {
+				if(var.getName().equals(Name)&& !var.getValue().equals(needVar.getValue())){
+					find = true;
+				varToRemove.setValue(var.getValue());
+				}
+				if(find) break;
+			}
+			if(find) break;
+		}
+		// remove all cptline with this containing the var to remove.
+		ArrayList<CPTline> trash = new ArrayList<>();
+		for (CPTline cpTline : CPT) {
+			if(cpTline.includesVar(varToRemove))
+				trash.add(cpTline);
+		}
+		CPT.removeAll(trash);
 	}
 
-
+/**
+ * operate inverse on each relevant value for algo 1
+ */
 	public void complAllRelevantProbs(){
 		for(Double prob:relevantProbs)
 			prob = tools.compl(prob);
 	}
-	
+
 	private boolean includesVarInCPT(Var var){
 		for (CPTline cpTline : CPT) {
 			if(cpTline.includesVar(var))
@@ -254,18 +347,18 @@ public class Variable {
 		}
 		return false;
 	}
-	
+
 	/**
 	 * join factor to the factor of this variable
 	 * @param factor
 	 * @return ArrayList of CPT line 
 	 */
 	public ArrayList<CPTline> join(ArrayList<CPTline> factor){
-		
+
 		ArrayList<CPTline> newfactor = new ArrayList<>();
 		for (CPTline cptline : factor) {
-			 ArrayList<CPTline> matchedCptLines = cptline.match(this.CPT);
-			 newfactor.addAll(matchedCptLines);
+			ArrayList<CPTline> matchedCptLines = cptline.match(this.CPT);
+			newfactor.addAll(matchedCptLines);
 		}
 		return newfactor ;
 	}
@@ -281,21 +374,21 @@ public class Variable {
 			if(this.isAnAncestorOf(variablesList.get(i))){
 				Factor fac = new Factor(variablesList.get(i).getCPT());
 				allFactor.add(fac);
-			variablesList.remove(i);
-			len--;
-			i = 0;
+				variablesList.remove(i);
+				len--;
+				i = 0;
 			}
 			else if(this.getName().equals(variablesList.get(i).getName())){
 				variablesList.remove(i);
-			len--;
-			i = 0;
+				len--;
+				i = 0;
 			}
 		}
 		Factor fac = new Factor(this.getCPT());
 		allFactor.add(fac);
 		return allFactor;
 	}
-	
+
 	/**
 	 * get the variable's factor
 	 * @return the corresponding factor if the variable 
@@ -305,7 +398,7 @@ public class Variable {
 		fac.setVariables(this.getCPT());
 		return fac;
 	}
-	
+
 	/**
 	 * 
 	 * @param v
@@ -317,7 +410,7 @@ public class Variable {
 			return true;
 		return false;
 	}
- 
+
 
 
 	public static Comparator<Variable> ComparatorAlphabetOrder = new Comparator<Variable>() {

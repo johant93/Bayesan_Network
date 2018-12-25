@@ -99,6 +99,7 @@ public class Network {
 			}
 			line = sc.nextLine();
 		}
+		//v.updateHiddenValue();
 		return v ;
 	}
 	
