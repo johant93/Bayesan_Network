@@ -1,6 +1,7 @@
 import java.awt.List;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Set;
@@ -386,6 +387,7 @@ public class Variable implements Cloneable{
 		}
 		Factor fac = new Factor(this.getCPT());
 		allFactor.add(fac);
+		Collections.sort(allFactor, Factor.ComparatorIncreaseOrder);	
 		return allFactor;
 	}
 

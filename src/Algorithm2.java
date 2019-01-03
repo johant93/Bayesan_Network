@@ -194,14 +194,7 @@ public class Algorithm2 {
 	public void setRelevantVariables(Network nk,ArrayList<Var> qVars){
 		relevantVariables.clear();
 		relevantVariables.addAll(nk.getRelevantVariablesToQuery(qVars));
-		//ArrayList<Variable> networkVariables = new ArrayList<Variable>(); 
-		//Collections.copy(networkVariables,nk.getRelevantVariablesToQuery(qVars));
-		// deep copy 
-		//		Iterator<Variable> iterator = nk.getRelevantVariablesToQuery(qVars).iterator();
-		//        while(iterator.hasNext()){
-		//            networkVariables.add((Variable) iterator.next().clone());
-		//        }
-
+		
 	}
 	/**
 	 * this method set the Variable that query ask for.
