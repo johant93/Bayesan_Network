@@ -6,7 +6,7 @@ import java.util.Collections;
 import java.util.Iterator;
 
 
-public class Algorithm2 {
+public class Algorithm2_3 {
 
 	Tools tools = new Tools();
 	private ArrayList<Variable> irrelevantVariables;
@@ -15,11 +15,12 @@ public class Algorithm2 {
 	private Var queryVariable;
 	public static int additionSum;
 	public static int multiplicationSum;
+	public boolean flag;
 
 	/**
 	 * constructor
 	 */
-	public Algorithm2() {
+	public Algorithm2_3(boolean flag) {
 		relevantVariables = new ArrayList<>(200);
 		irrelevantVariables = new ArrayList<>();
 		currentFactor = new Factor();
@@ -90,12 +91,14 @@ public class Algorithm2 {
 	 */
 	private double normalization(){
 		double sum = 0, queryprob = 0 ;
+		additionSum--;
 		for (CPTline cptline : currentFactor.getVariables()) {
 			if(cptline.includesVar(queryVariable)) queryprob = cptline.getProb();
 		 sum+=cptline.getProb();
+		 additionSum++;
 		}
 		BigDecimal bd = new BigDecimal(queryprob/sum);
-		bd= bd.setScale(5,BigDecimal.ROUND_UP);
+		bd= bd.setScale(5,BigDecimal.ROUND_DOWN);
 		double result = bd.doubleValue();
 		return result; 
 	}
@@ -163,7 +166,7 @@ public class Algorithm2 {
 					prb+= this.currentFactor.getVariables().get(j).getProb();
 					count++;
 					additCounter++;
-					Algorithm2.additionSum++;
+					Algorithm2_3.additionSum++;
 				}
 			}
 			if(count==ValideNumOfMatch){
@@ -221,7 +224,10 @@ public class Algorithm2 {
 				}
 			}
 		}
+		if(flag==true)
 		Collections.sort(irrelevantVariables, Variable.ComparatorAlphabetOrder);	
+		else 
+		Collections.sort(irrelevantVariables, Variable.ComparatorDecreaseCPTSize);	
 	}
 
 	/**

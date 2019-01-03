@@ -428,6 +428,20 @@ public class Variable implements Cloneable{
 		}  
 	};
 
+	public static Comparator<Variable> ComparatorDecreaseCPTSize = new Comparator<Variable>() {
+
+		/**
+		 *comparator for factor CPT size of variable in decreasing order
+		 *@return if the second object smaller return negative value and if its bigger positive value.
+		 *if they are equal return 0;
+		 */
+		@Override
+		public int compare(Variable v1, Variable v2) {
+			return v2.getCPT().size() - v1.getCPT().size();
+			//return  v1.getCPT().size() - v2.getCPT().size() ;
+
+		}  
+	};
 
 	public String toString() {
 		String ans="";

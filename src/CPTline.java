@@ -151,7 +151,7 @@ public class CPTline implements Cloneable{
 		}
 		newVars.removeAll(trash);
 		double newPrb = this.getProb()*other.getProb();
-		Algorithm2.multiplicationSum++;
+		Algorithm2_3.multiplicationSum++;
 		newCptLine.setCptVars(newVars);
 		newCptLine.setProb(newPrb);
 		return newCptLine;

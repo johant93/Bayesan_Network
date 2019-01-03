@@ -41,19 +41,13 @@ public class QueriesProcess {
 				System.out.println("##############################################################");
 				break;
 			case 2:
-				Algorithm2 algo2 = new Algorithm2 ();
+				Algorithm2_3 algo2 = new Algorithm2_3 (true);
 				Wout.writeAns(algo2.run(q, nk));
-				//System.out.println(algo2);
-
-//				try{
-//					System.out.println(algo2.run(q, nk));
-//				}catch (Exception e) {
-//					System.err.println("problem in algo 2");
-//				}
 				System.out.println("##############################################################");
 				break;
 			case 3:
-				System.out.println("algo 3");
+				Algorithm2_3 algo3 = new Algorithm2_3 (false);
+				Wout.writeAns(algo3.run(q, nk));
 				System.out.println("##############################################################");
 				break;
 			default:

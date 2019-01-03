@@ -21,7 +21,7 @@ public class Algorithm1 {
 		ansDenom = getCutprob(qr.getConditionVars(), nk);
 		double result = ansNumer.getResult()/ansDenom.getResult();
 		BigDecimal bd = new BigDecimal(result);
-		bd= bd.setScale(5,BigDecimal.ROUND_UP);
+		bd= bd.setScale(5,BigDecimal.ROUND_DOWN);
 		result = bd.doubleValue();
 		Answer ans = new Answer(result,
 				ansNumer.getAdditionOperations()+ansDenom.getAdditionOperations(),
